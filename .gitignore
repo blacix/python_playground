@@ -1,3 +1,14 @@
+models-master/
+model-training/models/*/c*
+model-training/models/*/train
+model-training/annotations/*xml*
+
+model-training/images*
+model-training/exported-models/
+model-training/pre-trained-models/
+model-training/annotations/*.record
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
