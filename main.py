@@ -1,16 +1,18 @@
-# This is a sample Python script.
+import os
+import signal
+import subprocess
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+COMMAND = r"c:\Program Files\SEGGER\JLink\JLinkRTTLogger.exe"
+LOG_FILE = r"d:\log.log"
+# COMMAND_ARGS = f"-Device NRF52840_XXAA -If SWD -Speed 4000 -RTTChannel 0 {LOG_FILE}"
+COMMAND_ARGS = ["-Device", "NRF52840_XXAA", "-If", "SWD", "-Speed", "4000", "-RTTChannel", "0", LOG_FILE]
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    print('hello')
+    os.remove("d:\\log.log")
+    os.chdir(r"c:\Program Files\SEGGER\JLink")
+    process = subprocess.Popen([COMMAND] + COMMAND_ARGS)
+    print(process.pid)
+    cnt = 0
+    while True:
+        cnt = cnt + 1
