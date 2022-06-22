@@ -20,8 +20,8 @@ if __name__ == '__main__':
     with open(version_file) as file:
         for line in file:
             # [^\S] matches any char that is not a non-whitespace = any char that is whitespace
-            result = re.search("(.*#define)[^\S]+(\S+)[^\S]+(\d+)[^\S]*\n", line)
+            result = re.search("(.*#define)([^\S]+)(\S+)([^\S]+)(\d+)([^\S]*\n)", line)
             if result is not None:
-                version_type = result[2]
+                version_type = result[3]
                 if version_type in version_types_to_increment:
-                    print(f"version_type: {version_type} {int(result[3]) + 1}")
+                    print(f"version_type: {version_type} {int(result[5]) + 1}")
