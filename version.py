@@ -24,8 +24,8 @@ if __name__ == '__main__':
                     # print(f"{version_type} {int(result[5]) + 1}")
                     # replace \\4 with a tab and the new value
                     new_line = re.sub(pattern="(.*#define)([^\S]+)(\S+)([^\S]+)(\d+)([^\S]*\n)",
-                                    repl=f"\\1\\2\\3\t{int(result[5]) + 1}\\6",
-                                    string=line)
+                                      repl=f"\\1\\2\\3\t{int(result[5]) + 1}\\6",
+                                      string=line)
                 else:
                     new_line = line
                 print(new_line.strip())
