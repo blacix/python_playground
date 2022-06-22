@@ -1,4 +1,4 @@
-#define MAJOR 0
-#define MINOR 0
-#define PATCH 1
-#define BUILD 1
+#define APP_VERSION_MAJOR   0
+#define APP_VERSION_MINOR	131
+#define APP_VERSION_PATCH	139
+#define APP_VERSION_BUILD   1
