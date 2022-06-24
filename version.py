@@ -66,4 +66,4 @@ if __name__ == '__main__':
     increment_version(sys.argv[1], version_tags)
     if len(version_tags) > 0:
         update_tags(
-            f'V{APP_VERSION["APP_VERSION_MAJOR"]}.{APP_VERSION["APP_VERSION_MINOR"]}.{APP_VERSION["APP_VERSION_BUILD"]}')
+            f'V{APP_VERSION["APP_VERSION_MAJOR"]}.{APP_VERSION["APP_VERSION_MINOR"]}.{APP_VERSION["APP_VERSION_PATCH"]}')
