@@ -2,31 +2,31 @@ import os
 import sys
 import re
 import subprocess
-from array import array
 
-MIN_ARG_CNT = 2
+ARG_TAG_START_INDEX = 2
 
-VERSION_TYPES = ['APP_VERSION_MAJOR', 'APP_VERSION_MINOR', 'APP_VERSION_REV', 'APP_VERSION_PATCH',
-                 'APP_VERSION_BUILD']
+VERSION_TAGS = ['APP_VERSION_MAJOR', 'APP_VERSION_MINOR', 'APP_VERSION_REV', 'APP_VERSION_PATCH',
+                'APP_VERSION_BUILD']
 
-APP_VERSION = {VERSION_TYPES[i]: 0 for i in range(0, len(VERSION_TYPES))}
+APP_VERSION = {VERSION_TAGS[i]: 0 for i in range(0, len(VERSION_TAGS))}
+C_DEFINE_PATTERN = r"(.*#define)([^\S]+)(\S+)([^\S]+)(\d+)([^\S]*\n)"
 
 
-def increment_version(version_file, version_tags: []):
-    print(version_tags)
+def increment_version(version_file, tags: []):
+    print(tags)
     new_lines = []
     with open(version_file, 'r') as file:
         for line in file:
             new_line = ''
             # [^\S] matches any char that is not a non-whitespace = any char that is whitespace
-            result = re.search("(.*#define)([^\S]+)(\S+)([^\S]+)(\d+)([^\S]*\n)", line)
+            result = re.search(C_DEFINE_PATTERN, line)
             if result is not None:
                 version_type = result[3]
-                if version_type in version_tags and version_type in VERSION_TYPES:
+                if version_type in tags and version_type in VERSION_TAGS:
                     # print(f"{version_type} {int(result[5]) + 1}")
                     # replace \\4 with a space and a tab and the new value
                     APP_VERSION[version_type] = int(result[5]) + 1
-                    new_line = re.sub(pattern="(.*#define)([^\S]+)(\S+)([^\S]+)(\d+)([^\S]*\n)",
+                    new_line = re.sub(pattern=C_DEFINE_PATTERN,
                                       repl=f"\\1\\2\\3 \t{APP_VERSION[version_type]}\\6",
                                       string=line)
                 else:
@@ -37,13 +37,13 @@ def increment_version(version_file, version_tags: []):
                 new_line = line
             new_lines.append(new_line)
 
-    with open(version_file, 'w') as file:
-        file.writelines(new_lines)
+    if len(tags) > 0:
+        with open(version_file, 'w') as file:
+            file.writelines(new_lines)
 
 
-def update_tags(r90_version):
+def update_tags(tag_name):
     result = 0
-    tag_name = f'R90_V{r90_version}'
     print(tag_name)
     proc = subprocess.Popen('git tag', stdout=subprocess.PIPE)
     output = proc.stdout.readlines()
@@ -58,9 +58,12 @@ def update_tags(r90_version):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) <= MIN_ARG_CNT:
+    if len(sys.argv) < ARG_TAG_START_INDEX:
         print(f'usage: {sys.argv[0]} version.h [version_type1 ... version_typen]')
         exit(-1)
-    increment_version(sys.argv[1], sys.argv[MIN_ARG_CNT:len(sys.argv)])
-    update_tags(
-        f'{APP_VERSION["APP_VERSION_MAJOR"]}.{APP_VERSION["APP_VERSION_MINOR"]}.{APP_VERSION["APP_VERSION_BUILD"]}')
+
+    version_tags = sys.argv[ARG_TAG_START_INDEX:len(sys.argv)]
+    increment_version(sys.argv[1], version_tags)
+    if len(version_tags) > 0:
+        update_tags(
+            f'V{APP_VERSION["APP_VERSION_MAJOR"]}.{APP_VERSION["APP_VERSION_MINOR"]}.{APP_VERSION["APP_VERSION_BUILD"]}')
