@@ -61,11 +61,10 @@ def update_git_tag(tag_name):
     # output = proc.stdout.readlines()
     proc = subprocess.run('git tag', check=True, capture_output=True)
     output = proc.stdout
-    print(proc.returncode)
     # print(output)
     if bytes(f'{tag_name}\n', 'utf-8') not in output:
-        proc = subprocess.run(f'git tag {tag_name}', check=True)
-        proc = subprocess.run(f'git push origin {tag_name}', check=True)
+        subprocess.run(f'git tag {tag_name}', check=True)
+        subprocess.run(f'git push origin {tag_name}', check=True)
     else:
         print(f'tag {tag_name} already exists')
 
