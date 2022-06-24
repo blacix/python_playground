@@ -6,4 +6,4 @@ GIT_TAG_PREFIX = 'V'
 
 if __name__ == '__main__':
     import version
-    version.update_versions(sys.argv, GIT_TAG_PREFIX, PROJECT_VERSION_TAGS)
+    sys.exit(version.update_versions(sys.argv, GIT_TAG_PREFIX, PROJECT_VERSION_TAGS))
