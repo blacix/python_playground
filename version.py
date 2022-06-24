@@ -47,32 +47,34 @@ def _update_version_file(version_file, version_types: []):
             file.writelines(new_lines)
 
 
+# can throw subprocess.CalledProcessError
 def commit_version_file(version_file: str, version_string: str):
-    print(f'git add {version_file}')
-    os.system(f'git add {version_file}')
-    os.system(f'git commit -m "version: {version_string}"')
-    os.system(f'git push')
+    subprocess.run(f'git add {version_file}', check=True)
+    subprocess.run(f'git commit -m "version: {version_string}"', check=True)
+    subprocess.run(f'git push', check=True)
 
 
+# can throw subprocess.CalledProcessError
 def update_git_tag(tag_name):
-    result = 0
     print(tag_name)
-    proc = subprocess.Popen('git tag', stdout=subprocess.PIPE)
-    output = proc.stdout.readlines()
+    # proc = subprocess.Popen('git tag', stdout=subprocess.PIPE)
+    # output = proc.stdout.readlines()
+    proc = subprocess.run('git tag', check=True, capture_output=True)
+    output = proc.stdout
+    print(proc.returncode)
     # print(output)
     if bytes(f'{tag_name}\n', 'utf-8') not in output:
-        result = os.system(f'git tag {tag_name}')
-        result = os.system(f'git push origin {tag_name}')
+        proc = subprocess.run(f'git tag {tag_name}', check=True)
+        proc = subprocess.run(f'git push origin {tag_name}', check=True)
     else:
         print(f'tag {tag_name} already exists')
 
-    return result
 
-
+# can throw subprocess.CalledProcessError
 def update_versions(sys_args: [], git_tag_prefix: str, project_versions: []):
     if len(sys_args) < ARG_TAG_START_INDEX:
         print(f'usage: {sys_args[0]} version.h [version_type1 ... version_typen]')
-        exit(-1)
+        return -1
 
     version_file = sys.argv[1]
 
@@ -102,11 +104,16 @@ def update_versions(sys_args: [], git_tag_prefix: str, project_versions: []):
                                filter(lambda x: x in VERSION_TAGS, project_versions)])
 
     print(f'new version: {version_string}')
+
     if len(versions_to_increment) > 0:
         git_tag = f'{git_tag_prefix}{version_string}'
         print(f'git tag: {git_tag_prefix}{version_string}')
-        # commit_version_file(version_file, git_tag)
-        return update_git_tag(git_tag)
+        try:
+            commit_version_file(version_file, git_tag)
+            update_git_tag(git_tag)
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            print(e)
+            return -1
 
     return 0
 
