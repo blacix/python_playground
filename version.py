@@ -12,7 +12,7 @@ APP_VERSION = {VERSION_TAGS[i]: 0 for i in range(0, len(VERSION_TAGS))}
 C_DEFINE_PATTERN = r"(.*#define)([^\S]+)(\S+)([^\S]+)(\d+)([^\S]*\n)"
 
 
-def increment_version(version_file, tags: []):
+def _update_versions(version_file, tags: []):
     print(tags)
     new_lines = []
     with open(version_file, 'r') as file:
@@ -27,7 +27,7 @@ def increment_version(version_file, tags: []):
                     # replace \\4 with a space and a tab and the new value
                     APP_VERSION[version_type] = int(result[5]) + 1
                     new_line = re.sub(pattern=C_DEFINE_PATTERN,
-                                      repl=f"\\1\\2\\3 \t{APP_VERSION[version_type]}\\6",
+                                      repl=f"\\1\\2\\3 {APP_VERSION[version_type]}\\6",
                                       string=line)
                 else:
                     APP_VERSION[version_type] = int(result[5])
@@ -42,7 +42,14 @@ def increment_version(version_file, tags: []):
             file.writelines(new_lines)
 
 
-def update_tags(tag_name):
+def commit_version_file(version_file: str, version_string: str):
+    print(f'git add {version_file}')
+    os.system(f'git add {version_file}')
+    os.system(f'git commit -m "version: {version_string}"')
+    os.system(f'git push')
+
+
+def update_git_tag(tag_name):
     result = 0
     print(tag_name)
     proc = subprocess.Popen('git tag', stdout=subprocess.PIPE)
@@ -57,13 +64,22 @@ def update_tags(tag_name):
     return result
 
 
-if __name__ == '__main__':
-    if len(sys.argv) < ARG_TAG_START_INDEX:
-        print(f'usage: {sys.argv[0]} version.h [version_type1 ... version_typen]')
+def update_versions(sys_args: [], git_tag_prefix: str, project_ver_tags: []):
+    if len(sys_args) < ARG_TAG_START_INDEX:
+        print(f'usage: {sys_args[0]} version.h [version_type1 ... version_typen]')
         exit(-1)
 
-    version_tags = sys.argv[ARG_TAG_START_INDEX:len(sys.argv)]
-    increment_version(sys.argv[1], version_tags)
-    if len(version_tags) > 0:
-        update_tags(
-            f'V{APP_VERSION["APP_VERSION_MAJOR"]}.{APP_VERSION["APP_VERSION_MINOR"]}.{APP_VERSION["APP_VERSION_PATCH"]}')
+    versions_to_increment = sys.argv[ARG_TAG_START_INDEX:len(sys.argv)]
+    version_file = sys.argv[1]
+
+    _update_versions(version_file, versions_to_increment)
+    version_string = ".".join([str(APP_VERSION[item]) for item in
+                               filter(lambda x: x in VERSION_TAGS, project_ver_tags)])
+    if len(versions_to_increment) > 0:
+        git_tag = f'{git_tag_prefix}{version_string}'
+        commit_version_file(version_file, git_tag)
+        update_git_tag(git_tag)
+
+
+if __name__ == '__main__':
+    update_versions(sys.argv, 'V', ['APP_VERSION_MAJOR', 'APP_VERSION_MINOR', 'APP_VERSION_PATCH'])
