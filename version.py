@@ -65,7 +65,7 @@ def update_git_tag(tag_name):
     return result
 
 
-def update_versions(sys_args: [], git_tag_prefix: str, project_ver_tags: []):
+def update_versions(sys_args: [], git_tag_prefix: str, project_versions: []):
     if len(sys_args) < ARG_TAG_START_INDEX:
         print(f'usage: {sys_args[0]} version.h [version_type1 ... version_typen]')
         exit(-1)
@@ -74,17 +74,17 @@ def update_versions(sys_args: [], git_tag_prefix: str, project_ver_tags: []):
     versions_to_increment = sys.argv[ARG_TAG_START_INDEX:len(sys.argv)]
     filtered_versions_to_increment = [item for item in
                                       filter(lambda x: x in VERSION_TAGS, versions_to_increment)]
-    filtered_project_ver_tags = [item for item in
-                                 filter(lambda x: x in VERSION_TAGS, project_ver_tags)]
+    filtered_project_versions = [item for item in
+                                 filter(lambda x: x in VERSION_TAGS, project_versions)]
 
-    print(filtered_project_ver_tags)
-    if len(filtered_project_ver_tags) != len(project_ver_tags):
+    print(f'used by project: {filtered_project_versions}')
+    if len(filtered_project_versions) != len(project_versions):
         invalid_versions = [item for item in
-                            filter(lambda x: x not in VERSION_TAGS, project_ver_tags)]
-        print(f'print invalid version type {invalid_versions}')
+                            filter(lambda x: x not in VERSION_TAGS, project_versions)]
+        print(f'print invalid project version type {invalid_versions}')
         return -1
 
-    print(filtered_versions_to_increment)
+    # print(filtered_versions_to_increment)
     if len(filtered_versions_to_increment) != len(versions_to_increment):
         invalid_versions = [item for item in
                             filter(lambda x: x not in VERSION_TAGS, versions_to_increment)]
@@ -94,13 +94,14 @@ def update_versions(sys_args: [], git_tag_prefix: str, project_ver_tags: []):
     _update_versions_file(version_file, versions_to_increment)
 
     version_string = ".".join([str(APP_VERSION[item]) for item in
-                               filter(lambda x: x in VERSION_TAGS, project_ver_tags)])
+                               filter(lambda x: x in VERSION_TAGS, project_versions)])
 
-    print(version_string)
-    # if len(versions_to_increment) > 0:
-    #     git_tag = f'{git_tag_prefix}{version_string}'
-    #     commit_version_file(version_file, git_tag)
-    #     update_git_tag(git_tag)
+    print(f'new version: {version_string}')
+    if len(versions_to_increment) > 0:
+        git_tag = f'{git_tag_prefix}{version_string}'
+        print(f'git tag: {git_tag_prefix}{version_string}')
+        # commit_version_file(version_file, git_tag)
+        # update_git_tag(git_tag)
 
 
 if __name__ == '__main__':
