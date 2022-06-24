@@ -9,16 +9,17 @@ VERSION_TAGS = ['APP_VERSION_MAJOR', 'APP_VERSION_MINOR', 'APP_VERSION_REV', 'AP
                 'APP_VERSION_BUILD']
 
 APP_VERSION = {VERSION_TAGS[i]: 0 for i in range(0, len(VERSION_TAGS))}
+
+# [^\S] matches any char that is not a non-whitespace = any char that is whitespace
 C_DEFINE_PATTERN = r"(.*#define)([^\S]+)(\S+)([^\S]+)(\d+)([^\S]*\n)"
 
 
-def _update_versions(version_file, tags: []):
-    print(tags)
+def _update_versions_file(version_file, tags: []):
+    print(f'updating {str(tags)}')
     new_lines = []
     with open(version_file, 'r') as file:
         for line in file:
             new_line = ''
-            # [^\S] matches any char that is not a non-whitespace = any char that is whitespace
             result = re.search(C_DEFINE_PATTERN, line)
             if result is not None:
                 version_type = result[3]
@@ -69,16 +70,37 @@ def update_versions(sys_args: [], git_tag_prefix: str, project_ver_tags: []):
         print(f'usage: {sys_args[0]} version.h [version_type1 ... version_typen]')
         exit(-1)
 
-    versions_to_increment = sys.argv[ARG_TAG_START_INDEX:len(sys.argv)]
     version_file = sys.argv[1]
+    versions_to_increment = sys.argv[ARG_TAG_START_INDEX:len(sys.argv)]
+    filtered_versions_to_increment = [item for item in
+                                      filter(lambda x: x in VERSION_TAGS, versions_to_increment)]
+    filtered_project_ver_tags = [item for item in
+                                 filter(lambda x: x in VERSION_TAGS, project_ver_tags)]
 
-    _update_versions(version_file, versions_to_increment)
+    print(filtered_project_ver_tags)
+    if len(filtered_project_ver_tags) != len(project_ver_tags):
+        invalid_versions = [item for item in
+                            filter(lambda x: x not in VERSION_TAGS, project_ver_tags)]
+        print(f'print invalid version type {invalid_versions}')
+        return -1
+
+    print(filtered_versions_to_increment)
+    if len(filtered_versions_to_increment) != len(versions_to_increment):
+        invalid_versions = [item for item in
+                            filter(lambda x: x not in VERSION_TAGS, versions_to_increment)]
+        print(f'print invalid version type {invalid_versions}')
+        return -1
+
+    _update_versions_file(version_file, versions_to_increment)
+
     version_string = ".".join([str(APP_VERSION[item]) for item in
                                filter(lambda x: x in VERSION_TAGS, project_ver_tags)])
-    if len(versions_to_increment) > 0:
-        git_tag = f'{git_tag_prefix}{version_string}'
-        commit_version_file(version_file, git_tag)
-        update_git_tag(git_tag)
+
+    print(version_string)
+    # if len(versions_to_increment) > 0:
+    #     git_tag = f'{git_tag_prefix}{version_string}'
+    #     commit_version_file(version_file, git_tag)
+    #     update_git_tag(git_tag)
 
 
 if __name__ == '__main__':
